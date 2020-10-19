@@ -92,9 +92,8 @@ class Client(object):
     if use_crypto is False:
         logging.getLogger(__name__).warning("cryptography is not installed, use of crypto disabled")
 
-    def __init__(self, url, timeout=4):
+    def __init__(self, url, timeout=4, *, session_timeout=None, secure_channel_timeout=None, set_source_timestamp=False):
         """
-
         :param url: url of the server.
             if you are unsure of url, write at least hostname
             and port and call get_endpoints
@@ -102,6 +101,15 @@ class Client(object):
         :param timeout:
             Each request sent to the server expects an answer within this
             time. The timeout is specified in seconds.
+
+        :param session_timeout:
+            ...
+
+        :param secure_channel_timeout:
+            ...
+
+        :param set_source_timestamp:
+            ...
 
         Some other client parameters can be changed by setting
         attributes on the constructed object:
@@ -125,8 +133,9 @@ class Client(object):
         self.product_uri = "urn:freeopcua.github.io:client"
         self.security_policy = ua.SecurityPolicy()
         self.secure_channel_id = None
-        self.secure_channel_timeout = 3600000  # 1 hour
-        self.session_timeout = 3600000  # 1 hour
+        self.secure_channel_timeout = secure_channel_timeout or 3600000  # 1 hour
+        self.session_timeout = session_timeout or 3600000  # 1 hour
+        self.set_source_timestamp = set_source_timestamp
         self._policy_ids = []
         self.uaclient = UaClient(timeout)
         self.user_certificate = None
@@ -535,7 +544,7 @@ class Client(object):
         """
         Get node using NodeId object or a string representing a NodeId
         """
-        return Node(self.uaclient, nodeid)
+        return Node(self.uaclient, nodeid, set_source_timestamp=self.set_source_timestamp)
 
     def create_subscription(self, period, handler):
         """

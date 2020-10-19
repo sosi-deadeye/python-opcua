@@ -38,7 +38,7 @@ class Node(object):
     directly UA services methods to optimize your code
     """
 
-    def __init__(self, server, nodeid):
+    def __init__(self, server, nodeid, *, set_source_timestamp=False):
         self.server = server
         self.nodeid = None
         if isinstance(nodeid, Node):
@@ -52,6 +52,7 @@ class Node(object):
         else:
             raise ua.UaError("argument to node must be a NodeId object or a string defining a nodeid found {0} of type {1}".format(nodeid, type(nodeid)))
         self.basenodeid = None
+        self._set_source_timestamp = set_source_timestamp
 
     def __eq__(self, other):
         if isinstance(other, Node) and self.nodeid == other.nodeid:
@@ -210,10 +211,12 @@ class Node(object):
             datavalue = value
         elif isinstance(value, ua.Variant):
             datavalue = ua.DataValue(value)
-            datavalue.SourceTimestamp = datetime.utcnow()
+            if self._set_source_timestamp:
+                datavalue.SourceTimestamp = datetime.utcnow()
         else:
             datavalue = ua.DataValue(ua.Variant(value, varianttype))
-            datavalue.SourceTimestamp = datetime.utcnow()
+            if self._set_source_timestamp:
+                datavalue.SourceTimestamp = datetime.utcnow()
         self.set_attribute(ua.AttributeIds.Value, datavalue)
 
     set_data_value = set_value
